@@ -1,0 +1,164 @@
+KafaVote – Tok aplikacije (MVP)
+1) Cilj
+
+Aplikacija služi za brzo zakazivanje druženja (kafa/piće) kada je teško uskladiti vreme i lokaciju sa više ljudi. Jedna osoba kreira događaj sa predloženim opcijama, a ostali samo glasaju. Rezultati se prikazuju u real-time.
+
+2) Uloge
+
+Creator (Ana): kreira event, dodaje opcije (vreme + mesto), šalje invite link, finalizuje dogovor.
+
+Invitee (prijatelji): ulaze preko linka, registruju se/uloguje se, glasaju za ponuđene opcije. Ne mogu dodavati nove opcije.
+
+3) Glavni ekran (Dashboard)
+
+Korisnik nakon logina vidi:
+
+Open eventi (u toku glasanje)
+
+Finalized eventi (zaključani dogovori)
+
+Dugme + Create event
+
+4) Kreiranje eventa (samo Creator)
+
+Creator popunjava:
+
+Naziv eventa (npr. “Kafa ove nedelje”)
+
+Opis (opciono)
+
+Deadline (rok za glasanje – datum i vreme)
+
+Time options: 3–6 termina (npr. uto 18:30, sre 19:00…)
+
+Place options:
+
+MVP: ručni unos (naziv + adresa)
+
+V1: Google Places pretraga + izbor mesta
+
+Klik Create → event se kreira kao OPEN.
+
+5) Invite link (ključna feature)
+
+Nakon kreiranja, sistem generiše invite link:
+
+primer: https://app.domain/e/{inviteToken}
+
+Creator šalje link u grupu (WhatsApp/Viber).
+
+Ponašanje linka:
+
+Ako korisnik nije ulogovan → vidi preview + “Join & vote” → registracija/login → ulazak u event
+
+Ako je ulogovan → direktan ulazak u event
+
+Invite link je vezan za event i može imati rok (opciono).
+
+6) Event stranica (glasanje)
+
+Na event stranici svi vide:
+
+Naslov, opis, deadline
+
+Liste ponuđenih opcija:
+
+Termini
+
+Mesta (i mapa kasnije)
+
+Glasanje za termine (po termin opciji):
+
+✅ MOGU
+
+🤔 MOŽDA
+
+❌ NE MOGU
+
+Glasanje za mesto (po mestu):
+
+👍 SVIĐA MI SE
+
+👎 NE SVIĐA MI SE
+(opciono kasnije: rank 1–3)
+
+Komentar (opciono)
+
+Korisnik može ostaviti komentar tipa:
+
+“Mogu samo do 20h”
+
+“Ne mogu četvrtak”
+
+Klik Submit.
+
+7) Real-time (WebSocket)
+
+Kada neko glasa, svi koji su otvorili event dobijaju update odmah:
+
+Osvežavanje broja glasova po terminima/mestima
+
+Status “Marko voted”
+
+Indikator “Waiting for: N people”
+
+8) Predlog pobednika (Auto suggestion)
+
+Dok glasanje traje, sistem prikazuje “trenutno najbolje”:
+
+Najbolji termin (najviše ✅, zatim 🤔; ❌ smanjuje score)
+
+Najbolje mesto (najviše 👍)
+
+Ovo je samo sugestija dok se event ne finalizuje.
+
+9) Finalizacija (samo Creator)
+
+Creator može finalizovati:
+
+kada svi glasaju ili kada istekne deadline
+
+Klik Finalize:
+
+sistem predlaže top termin + top mesto (ili Creator ručno izabere)
+
+event prelazi u status FINALIZED
+
+dalje glasanje nije moguće
+
+10) Final screen (rezultat dogovora)
+
+Svi vide zaključani rezultat:
+
+🗓 Final termin
+
+📍 Final mesto
+
+Dugme Open in Google Maps
+
+Dugme Add to Calendar (ICS / link) – opciono u V1
+
+11) Statusi i pravila
+
+Event statusi: OPEN, FINALIZED, CANCELLED (opciono)
+
+Samo Creator može:
+
+menjati event (dok je OPEN)
+
+dodavati/brisati opcije (dok je OPEN)
+
+finalizovati
+
+Invitee može samo:
+
+glasati i menjati svoj glas do deadline-a (opciono)
+
+12) MVP scope (šta je obavezno)
+
+✅ Login/Register
+✅ Create event (title, deadline, options)
+✅ Invite link join flow
+✅ Vote (time + place)
+✅ Real-time updates
+✅ Finalize + zaključani rezultat
