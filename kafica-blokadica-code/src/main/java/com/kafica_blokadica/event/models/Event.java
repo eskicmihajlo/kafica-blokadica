@@ -46,4 +46,18 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<PlaceOption> placeOptions = new ArrayList<>();
+
+    @Column(name = "final_time_option_id")
+    private Long finalTimeOptionId;
+
+    @Column(name = "final_place_option_id")
+    private Long finalPlaceOptionId;
+
+    @Column(name = "finalized_at")
+    private OffsetDateTime finalizedAt;
+
+
+
+
+
 }

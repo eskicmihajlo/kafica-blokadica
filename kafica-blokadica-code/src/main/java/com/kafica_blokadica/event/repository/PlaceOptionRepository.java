@@ -11,5 +11,5 @@ import java.util.List;
 @Repository
 public interface PlaceOptionRepository extends JpaRepository<PlaceOption, Long> {
     List<PlaceOption> findAllByEvent_IdAndIdIn(Long eventId, Collection<Long> ids);
-
+    List<PlaceOption> findAllByEvent_IdOrderByIdAsc(Long eventId);
 }

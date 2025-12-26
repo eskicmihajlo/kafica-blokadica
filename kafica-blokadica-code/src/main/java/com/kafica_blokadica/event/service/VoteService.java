@@ -1,10 +1,7 @@
 package com.kafica_blokadica.event.service;
 
 import com.kafica_blokadica.event.models.*;
-import com.kafica_blokadica.event.repository.PlaceOptionRepository;
-import com.kafica_blokadica.event.repository.PlaceVoteRepository;
-import com.kafica_blokadica.event.repository.TimeOptionRepository;
-import com.kafica_blokadica.event.repository.TimeVoteRepository;
+import com.kafica_blokadica.event.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.parameters.P;
@@ -25,12 +22,25 @@ public class VoteService {
     private final PlaceVoteRepository placeVoteRepository;
     private final TimeOptionRepository timeOptionRepository;
     private final PlaceOptionRepository placeOptionRepository;
+    private final EventRepository eventRepository;
+    private final EventParticipantService eventParticipantService;
     private final SimpMessagingTemplate messagingTemplate;
+
     public void submit(Long eventId, SubmitVotesRequest request) {
 
 
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event not found"));
+
+        if (event.getStatus() != EventStatus.OPEN) {
+            throw new IllegalStateException("Event is not OPEN");
+        }
+
         /// Kasnije ispaviti kada implementiram Auth
-        Long userId = 1L;
+        Long userId = 2L;
+
+
+
 
         Objects.requireNonNull(eventId, "eventId must not be null");
         Objects.requireNonNull(request, "request must not be null");
@@ -43,8 +53,13 @@ public class VoteService {
         /// Validiramo da bude sve 1-1
         validateBelongsToEvent(eventId, timeVotes, placeVotes);
 
+        boolean firstTime = eventParticipantService.markFirst(eventId, userId);
+
         upsertTimeVotes(eventId, timeVotes,userId);
         upsertPlaceVotes(eventId,placeVotes,userId);
+
+
+
 
         messagingTemplate.convertAndSend("/topic/events/"+ eventId ,
                 new VotesUpdatedMessage("VOTES_UPDATED", eventId, userId, OffsetDateTime.now()));

@@ -11,4 +11,5 @@ import java.util.List;
 @Repository
 public interface TimeOptionRepository extends JpaRepository<TimeOption, Long> {
     List<TimeOption> findAllByEvent_IdAndIdIn(Long eventId, Collection<Long> ids);
+    List<TimeOption> findAllByEvent_IdOrderByStartsAtAsc(Long eventId);
 }

@@ -13,4 +13,6 @@ import java.util.Optional;
 public interface PlaceVoteRepository extends JpaRepository<PlaceVote, Long> {
 
     List<PlaceVote> findAllByUserIdAndPlaceOptionIdIn(Long userId, Collection<Long> placeOptionIds);
+
+    List<PlaceVote> findAllByEventId(Long eventId);
 }
