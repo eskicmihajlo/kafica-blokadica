@@ -1,5 +1,6 @@
 package com.kafica_blokadica.event.service;
 
+import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,8 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.kafica_blokadica.config.SecurityUtils.getCurrentUserIdOrThrow;
 
 @Service
 @RequiredArgsConstructor
@@ -36,8 +39,8 @@ public class VoteService {
             throw new IllegalStateException("Event is not OPEN");
         }
 
-        /// Kasnije ispaviti kada implementiram Auth
-        Long userId = 2L;
+
+        Long userId = getCurrentUserIdOrThrow();
 
 
 
@@ -48,6 +51,8 @@ public class VoteService {
 
         List<SubmitVotesRequest.TimeVoteReq> timeVotes = defaultList(request.timeVotes());
         List<SubmitVotesRequest.PlaceVoteReq> placeVotes = defaultList(request.placeVotes());
+
+
 
 
         /// Validiramo da bude sve 1-1

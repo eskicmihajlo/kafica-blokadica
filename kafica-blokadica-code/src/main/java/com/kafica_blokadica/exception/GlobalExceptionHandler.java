@@ -47,6 +47,15 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(NotParticipantException.class)
+    public ResponseEntity<Map<String, Object>> handleNotParticipantException(NotParticipantException exception)
+    {
+        return buildResponse(
+                HttpStatus.FORBIDDEN,
+                "Not Participant",
+                exception.getMessage()
+        );
+    }
 
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String error, String message) {
         Map<String, Object> body = new HashMap<>();

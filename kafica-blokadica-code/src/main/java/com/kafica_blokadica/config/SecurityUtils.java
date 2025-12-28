@@ -21,4 +21,13 @@ public class SecurityUtils {
         return Optional.empty();
     }
 
+
+
+    public static Long getCurrentUserIdOrThrow() {
+        return getCurrentUser()
+                .map(User::getId)
+                .orElseThrow(() -> new IllegalStateException("Not authenticated"));
+    }
+
+
 }

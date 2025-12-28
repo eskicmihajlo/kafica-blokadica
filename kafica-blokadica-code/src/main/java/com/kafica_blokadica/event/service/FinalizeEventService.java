@@ -1,5 +1,6 @@
 package com.kafica_blokadica.event.service;
 
+import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
 import lombok.AllArgsConstructor;
@@ -26,7 +27,7 @@ public class FinalizeEventService {
     public FinalizeEventResponse finalizeEvent(Long eventId)
     {
 
-        Long userId = 1L;
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
 
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(()-> new IllegalArgumentException("Evenet with ID: " + eventId +" do not exist"));

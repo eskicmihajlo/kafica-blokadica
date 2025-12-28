@@ -17,9 +17,9 @@ public class EventParticipantController {
     @PostMapping("/invite/{token}/join")
     public void join(@PathVariable String token)
     {
-        Long userId = 2L;
 
-        eventParticipantService.joinByToken(token, userId);
+
+        eventParticipantService.joinByToken(token);
     }
 
     @GetMapping("/{eventId}/participants/status")

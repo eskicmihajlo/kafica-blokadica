@@ -2,6 +2,7 @@ package com.kafica_blokadica.event.service;
 
 import com.kafica_blokadica.auth.entity.User;
 import com.kafica_blokadica.auth.repository.UserRepository;
+import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.Event;
 import com.kafica_blokadica.event.models.EventParticipant;
 import com.kafica_blokadica.event.models.ParticipantStatusResponse;
@@ -15,6 +16,8 @@ import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.kafica_blokadica.config.SecurityUtils.getCurrentUserIdOrThrow;
+
 @Service
 @RequiredArgsConstructor
 public class EventParticipantService {
@@ -25,8 +28,11 @@ public class EventParticipantService {
 
 
     @Transactional
-    public void  joinByToken(String token, Long userId)
+    public void  joinByToken(String token)
     {
+
+        Long userId = getCurrentUserIdOrThrow();
+
         Event evet = eventRepository.findByInviteToken(token)
                 .orElseThrow(()-> new IllegalArgumentException("Invite token do not exist"));
 
@@ -49,7 +55,17 @@ public class EventParticipantService {
     public ParticipantStatusResponse getStatus(Long eventId)
     {
 
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        if(!eventParticipantRepository.existsByEventIdAndUserId(eventId, userId))
+        {
+            throw new IllegalArgumentException("User is not a participant of this event");
+        }
+
+
         List<EventParticipant> participants = eventParticipantRepository.findAllByEventId(eventId);
+
+
 
         long total = participants.size();
         long responded = participants.stream().filter(p-> p.getRespondedAt() != null).count();

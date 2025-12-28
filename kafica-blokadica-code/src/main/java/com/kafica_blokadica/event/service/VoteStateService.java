@@ -2,8 +2,10 @@ package com.kafica_blokadica.event.service;
 
 import com.kafica_blokadica.auth.entity.User;
 import com.kafica_blokadica.auth.repository.UserRepository;
+import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
+import com.kafica_blokadica.exception.NotParticipantException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,14 +27,16 @@ public class VoteStateService {
     @Transactional(readOnly = true)
     public VoteStateResponse getState(Long eventId) {
 
-        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdOrderByStartsAtAsc(eventId);
-        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdOrderByIdAsc(eventId);
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
 
-        List<TimeVote> timeVotes = timeVoteRepository.findAllByEventId(eventId);
-        List<PlaceVote> placeVotes = placeVoteRepository.findAllByEventId(eventId);
-
+        if(!eventParticipantRepository.existsByEventIdAndUserId(eventId, userId))
+        {
+            throw new NotParticipantException("User is not a participant of this event");
+        }
 
         List<EventParticipant> participants = eventParticipantRepository.findAllByEventId(eventId);
+
+
 
         Set<Long> userIds = participants.stream()
                 .map(EventParticipant::getUserId)
@@ -45,6 +49,13 @@ public class VoteStateService {
                 usersById.put(u.getId(), u);
             }
         }
+
+        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdOrderByStartsAtAsc(eventId);
+        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdOrderByIdAsc(eventId);
+
+        List<TimeVote> timeVotes = timeVoteRepository.findAllByEventId(eventId);
+        List<PlaceVote> placeVotes = placeVoteRepository.findAllByEventId(eventId);
+
 
 
         List<VoteStateResponse.UserVote<Void>> orderedUsers = participants.stream()

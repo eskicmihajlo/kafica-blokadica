@@ -1,6 +1,7 @@
 package com.kafica_blokadica.event.service;
 
 
+import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.EventRepository;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +31,7 @@ public class EventService {
                 .description(request.description())
                 .deadline(request.deadline())
                 .status(EventStatus.OPEN)
-                //  privremeno hardcode creatorUserId dok ne uradim auth
-                .creatorUserId(1L)
+                .creatorUserId(SecurityUtils.getCurrentUserIdOrThrow())
                 .inviteToken(token)
                 .build();
 
