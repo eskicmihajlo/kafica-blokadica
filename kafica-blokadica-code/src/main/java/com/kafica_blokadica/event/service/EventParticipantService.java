@@ -5,7 +5,7 @@ import com.kafica_blokadica.auth.repository.UserRepository;
 import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.models.Event;
 import com.kafica_blokadica.event.models.EventParticipant;
-import com.kafica_blokadica.event.models.ParticipantStatusResponse;
+import com.kafica_blokadica.event.dtos.ParticipantStatusResponse;
 import com.kafica_blokadica.event.repository.EventParticipantRepository;
 import com.kafica_blokadica.event.repository.EventRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,29 +27,6 @@ public class EventParticipantService {
     private final UserRepository userRepository;
 
 
-    @Transactional
-    public void  joinByToken(String token)
-    {
-
-        Long userId = getCurrentUserIdOrThrow();
-
-        Event evet = eventRepository.findByInviteToken(token)
-                .orElseThrow(()-> new IllegalArgumentException("Invite token do not exist"));
-
-
-        eventParticipantRepository.findByEventIdAndUserId(evet.getId(), userId)
-                .orElseGet(()-> eventParticipantRepository.save(
-                        EventParticipant.builder()
-                                .joinedAt(OffsetDateTime.now())
-                                .eventId(evet.getId())
-                                .userId(userId)
-                                .build()
-                ));
-
-
-
-
-    }
 
     @Transactional(readOnly = true)
     public ParticipantStatusResponse getStatus(Long eventId)

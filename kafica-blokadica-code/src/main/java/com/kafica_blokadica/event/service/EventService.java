@@ -2,6 +2,8 @@ package com.kafica_blokadica.event.service;
 
 
 import com.kafica_blokadica.config.SecurityUtils;
+import com.kafica_blokadica.event.dtos.CreateEventRequest;
+import com.kafica_blokadica.event.dtos.EventResponse;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.EventRepository;
 import org.springframework.transaction.annotation.Transactional;

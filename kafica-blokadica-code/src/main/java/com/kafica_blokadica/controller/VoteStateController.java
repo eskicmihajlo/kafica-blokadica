@@ -1,7 +1,7 @@
 package com.kafica_blokadica.controller;
 
 
-import com.kafica_blokadica.event.models.VoteStateResponse;
+import com.kafica_blokadica.event.dtos.VoteStateResponse;
 import com.kafica_blokadica.event.service.VoteStateService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,11 +1,10 @@
 package com.kafica_blokadica.controller;
 
 
-import com.kafica_blokadica.event.models.SubmitVotesRequest;
+import com.kafica_blokadica.event.dtos.SubmitVotesRequest;
 import com.kafica_blokadica.event.service.VoteService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

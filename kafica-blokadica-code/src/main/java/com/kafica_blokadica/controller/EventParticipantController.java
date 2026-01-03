@@ -1,5 +1,5 @@
 package com.kafica_blokadica.controller;
-import com.kafica_blokadica.event.models.ParticipantStatusResponse;
+import com.kafica_blokadica.event.dtos.ParticipantStatusResponse;
 import com.kafica_blokadica.event.service.EventParticipantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -14,16 +14,12 @@ public class EventParticipantController {
 
 
 
-    @PostMapping("/invite/{token}/join")
-    public void join(@PathVariable String token)
-    {
-
-
-        eventParticipantService.joinByToken(token);
-    }
-
     @GetMapping("/{eventId}/participants/status")
     public ParticipantStatusResponse status(@PathVariable Long eventId) {
         return eventParticipantService.getStatus(eventId);
     }
+
+
+
+
 }

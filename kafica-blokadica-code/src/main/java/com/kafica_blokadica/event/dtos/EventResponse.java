@@ -1,4 +1,6 @@
-package com.kafica_blokadica.event.models;
+package com.kafica_blokadica.event.dtos;
+
+import com.kafica_blokadica.event.models.EventStatus;
 
 import java.time.OffsetDateTime;
 import java.util.List;

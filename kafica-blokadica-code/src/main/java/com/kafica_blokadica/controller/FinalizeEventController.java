@@ -1,7 +1,7 @@
 package com.kafica_blokadica.controller;
 
 
-import com.kafica_blokadica.event.models.FinalizeEventResponse;
+import com.kafica_blokadica.event.dtos.FinalizeEventResponse;
 import com.kafica_blokadica.event.service.FinalizeEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;

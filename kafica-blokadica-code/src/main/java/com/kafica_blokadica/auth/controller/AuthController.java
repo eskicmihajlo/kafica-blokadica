@@ -3,10 +3,8 @@ package com.kafica_blokadica.auth.controller;
 
 import com.kafica_blokadica.auth.entity.RegisterRequest;
 import com.kafica_blokadica.auth.service.AuthService;
-import com.kafica_blokadica.event.models.LoginRequest;
-import lombok.AllArgsConstructor;
+import com.kafica_blokadica.event.dtos.LoginRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;

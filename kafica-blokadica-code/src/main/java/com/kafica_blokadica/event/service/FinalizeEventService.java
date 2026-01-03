@@ -1,6 +1,8 @@
 package com.kafica_blokadica.event.service;
 
 import com.kafica_blokadica.config.SecurityUtils;
+import com.kafica_blokadica.event.dtos.FinalizeEventResponse;
+import com.kafica_blokadica.event.dtos.VotesUpdatedMessage;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
 import lombok.AllArgsConstructor;

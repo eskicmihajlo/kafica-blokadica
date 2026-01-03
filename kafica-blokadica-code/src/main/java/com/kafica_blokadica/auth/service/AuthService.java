@@ -4,7 +4,7 @@ package com.kafica_blokadica.auth.service;
 import com.kafica_blokadica.auth.entity.RegisterRequest;
 import com.kafica_blokadica.auth.entity.User;
 import com.kafica_blokadica.auth.repository.UserRepository;
-import com.kafica_blokadica.event.models.LoginRequest;
+import com.kafica_blokadica.event.dtos.LoginRequest;
 import com.kafica_blokadica.exception.UserAlreadyExistsException;
 import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;

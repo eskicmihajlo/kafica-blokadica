@@ -1,14 +1,13 @@
 package com.kafica_blokadica.event.service;
 
-import com.kafica_blokadica.config.SecurityUtils;
+import com.kafica_blokadica.event.dtos.SubmitVotesRequest;
+import com.kafica_blokadica.event.dtos.VotesUpdatedMessage;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.function.Function;

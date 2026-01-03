@@ -1,4 +1,4 @@
-package com.kafica_blokadica.event.models;
+package com.kafica_blokadica.event.dtos;
 
 
 import java.util.List;

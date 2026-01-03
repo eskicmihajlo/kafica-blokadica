@@ -57,6 +57,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(EventNotFoundException.class)
+    public ResponseEntity<Map<String ,Object>>handleEventNotFoundException(EventNotFoundException exception)
+    {
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                "Event not found",
+                exception.getMessage()
+        );
+    }
+
     private ResponseEntity<Map<String, Object>> buildResponse(HttpStatus status, String error, String message) {
         Map<String, Object> body = new HashMap<>();
         body.put("status", status.value());

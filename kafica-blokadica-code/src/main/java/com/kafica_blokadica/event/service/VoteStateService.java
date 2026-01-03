@@ -3,6 +3,7 @@ package com.kafica_blokadica.event.service;
 import com.kafica_blokadica.auth.entity.User;
 import com.kafica_blokadica.auth.repository.UserRepository;
 import com.kafica_blokadica.config.SecurityUtils;
+import com.kafica_blokadica.event.dtos.VoteStateResponse;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
 import com.kafica_blokadica.exception.NotParticipantException;

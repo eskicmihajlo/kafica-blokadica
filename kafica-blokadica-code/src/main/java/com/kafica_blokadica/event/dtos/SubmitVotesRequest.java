@@ -1,5 +1,7 @@
-package com.kafica_blokadica.event.models;
+package com.kafica_blokadica.event.dtos;
 
+import com.kafica_blokadica.event.models.PlaceVoteValue;
+import com.kafica_blokadica.event.models.TimeVoteValue;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.List;
