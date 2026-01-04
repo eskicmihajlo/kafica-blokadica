@@ -12,4 +12,6 @@ import java.util.List;
 public interface PlaceOptionRepository extends JpaRepository<PlaceOption, Long> {
     List<PlaceOption> findAllByEvent_IdAndIdIn(Long eventId, Collection<Long> ids);
     List<PlaceOption> findAllByEvent_IdOrderByIdAsc(Long eventId);
+    boolean existsByIdAndEvent_Id(Long id, Long eventId);
+
 }

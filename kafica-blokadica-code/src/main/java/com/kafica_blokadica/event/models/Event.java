@@ -56,6 +56,10 @@ public class Event {
     @Column(name = "finalized_at")
     private OffsetDateTime finalizedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = true, length = 20, name = "finalization_method")
+    private FinalizionMethod method;
+
 
 
 

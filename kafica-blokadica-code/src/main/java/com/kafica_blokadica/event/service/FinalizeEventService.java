@@ -2,9 +2,11 @@ package com.kafica_blokadica.event.service;
 
 import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.dtos.FinalizeEventResponse;
+import com.kafica_blokadica.event.dtos.FinalizeManualRequest;
 import com.kafica_blokadica.event.dtos.VotesUpdatedMessage;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
+import com.kafica_blokadica.exception.EventNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -56,6 +58,7 @@ public class FinalizeEventService {
         event.setStatus(EventStatus.FINALIZED);
         event.setFinalTimeOptionId(bestTimeId);
         event.setFinalPlaceOptionId(bestPlaceId);
+        event.setMethod(FinalizionMethod.AUTO);
 
         eventRepository.save(event);
 
@@ -131,4 +134,45 @@ public class FinalizeEventService {
     }
 
 
+    public FinalizeEventResponse finalizeEventManual(Long eventId, FinalizeManualRequest request) {
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(()-> new IllegalArgumentException("Evenet with ID: " + eventId +" do not exist"));
+
+        if(event.getStatus() != EventStatus.OPEN)
+        {
+            throw new IllegalStateException("Event is not open");
+        }
+
+        if(!Objects.equals(event.getCreatorUserId(), userId))
+        {
+            throw  new SecurityException("Only creator can finalize event");
+        }
+
+
+        if (!placeOptionRepository.existsByIdAndEvent_Id(request.placeOptionId(), eventId)) {
+            throw new EventNotFoundException("Place option does not exist for this event");
+        }
+        if (!timeOptionRepository.existsByIdAndEvent_Id(request.timeOptionId(), eventId)) {
+            throw new EventNotFoundException("Time option does not exist for this event");
+        }
+
+
+        event.setFinalizedAt(OffsetDateTime.now());
+        event.setStatus(EventStatus.FINALIZED);
+        event.setFinalTimeOptionId(request.timeOptionId());
+        event.setFinalPlaceOptionId(request.placeOptionId());
+        event.setMethod(FinalizionMethod.MANUAL);
+
+        eventRepository.save(event);
+
+        messagingTemplate.convertAndSend("/topic/events/"+eventId,
+                new VotesUpdatedMessage("EVENT_FINALIZED", eventId, userId, OffsetDateTime.now()));
+
+        return new FinalizeEventResponse(eventId,  request.timeOptionId(),
+                request.placeOptionId(), event.getFinalizedAt());
+
+    }
 }
