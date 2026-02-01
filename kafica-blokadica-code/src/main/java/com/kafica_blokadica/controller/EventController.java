@@ -3,7 +3,9 @@ package com.kafica_blokadica.controller;
 
 import com.kafica_blokadica.event.dtos.CreateEventRequest;
 import com.kafica_blokadica.event.dtos.EventResponse;
+import com.kafica_blokadica.event.dtos.EventResultResponse;
 import com.kafica_blokadica.event.dtos.EventViewResponse;
+import com.kafica_blokadica.event.service.EventResultService;
 import com.kafica_blokadica.event.service.EventService;
 import com.kafica_blokadica.event.service.EventViewService;
 import jakarta.validation.Valid;
@@ -18,6 +20,7 @@ public class EventController {
 
     private final EventService service;
     private final EventViewService eventViewService;
+    private final EventResultService eventResultService;
 
 
     @PostMapping
@@ -40,5 +43,10 @@ public class EventController {
         return service.getByInviteToken(token);
     }
 
+    @GetMapping("/{eventId}/result")
+    public EventResultResponse result(@PathVariable Long eventId)
+    {
+        return eventResultService.getResult(eventId);
+    }
 
 }

@@ -82,6 +82,11 @@ public class EventService {
 
 
 
+
+
+
+
+
     private EventResponse toResponse(Event e) {
 
         return new EventResponse(
