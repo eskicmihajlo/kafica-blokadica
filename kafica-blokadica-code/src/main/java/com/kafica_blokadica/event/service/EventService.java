@@ -4,13 +4,16 @@ package com.kafica_blokadica.event.service;
 import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.dtos.CreateEventRequest;
 import com.kafica_blokadica.event.dtos.EventResponse;
+import com.kafica_blokadica.event.dtos.UpdateEventRequest;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.EventRepository;
+import com.kafica_blokadica.exception.EventNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;
+import java.time.OffsetDateTime;
 import java.util.HexFormat;
 import java.util.stream.Collectors;
 
@@ -121,4 +124,40 @@ public class EventService {
         return repo.findById(id).map(this::toResponse)
                 .orElseThrow(() -> new IllegalArgumentException("Event with ID: "+ id +" not found"));
     }
+
+    public EventResponse update(Long id, UpdateEventRequest request) {
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event = repo.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+        if (!userId.equals(event.getCreatorUserId())) {
+            throw new RuntimeException("Only creator can edit event");
+        }
+
+        if (event.getStatus() != EventStatus.OPEN) {
+            throw new IllegalStateException("Event is not OPEN");
+        }
+
+        if (request.deadline() != null) {
+            if (request.deadline().isBefore(OffsetDateTime.now())) {
+                throw new IllegalStateException("Deadline cannot be in the past");
+            }
+            event.setDeadline(request.deadline());
+        }
+
+        if (request.title() != null) {
+            String t = request.title().trim();
+            if (t.isBlank()) throw new IllegalArgumentException("Title cannot be blank");
+            event.setTitle(t.trim());
+        }
+
+        if (request.description() != null) {
+            event.setDescription(request.description().trim());
+        }
+
+        return toResponse(repo.save(event));
+    }
+
 }
