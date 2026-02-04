@@ -47,8 +47,8 @@ public class FinalizeEventService {
         }
 
 
-        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdOrderByStartsAtAsc(eventId);
-        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdOrderByIdAsc(eventId);
+        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(eventId);
+        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByIdAsc(eventId);
 
         Long bestTimeId = pickBestTimeOption(eventId,timeOptions);
         Long bestPlaceId = pickBestPlaceOption(eventId, placeOptions);
@@ -152,10 +152,10 @@ public class FinalizeEventService {
         }
 
 
-        if (!placeOptionRepository.existsByIdAndEvent_Id(request.placeOptionId(), eventId)) {
+        if (!placeOptionRepository.existsByIdAndEvent_IdAndActiveTrue(request.placeOptionId(), eventId)) {
             throw new EventNotFoundException("Place option does not exist for this event");
         }
-        if (!timeOptionRepository.existsByIdAndEvent_Id(request.timeOptionId(), eventId)) {
+        if (!timeOptionRepository.existsByIdAndEvent_IdAndActiveTrue(request.timeOptionId(), eventId)) {
             throw new EventNotFoundException("Time option does not exist for this event");
         }
 

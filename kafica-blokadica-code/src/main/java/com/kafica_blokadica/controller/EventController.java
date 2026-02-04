@@ -48,7 +48,7 @@ public class EventController {
 
 
     @PatchMapping("/{id}")
-    public EventResponse update(@PathVariable Long id, @RequestBody UpdateEventRequest request)
+    public EventResponse update(@PathVariable Long id, @Valid  @RequestBody UpdateEventRequest request)
     {
         return service.update(id, request);
     }

@@ -191,7 +191,7 @@ public class VoteService {
 
         if(!timeOptionIds.isEmpty())
         {
-            List<TimeOption> found = timeOptionRepository.findAllByEvent_IdAndIdIn(eventId, timeOptionIds);
+            List<TimeOption> found = timeOptionRepository.findAllByEvent_IdAndIdInAndActiveTrue(eventId, timeOptionIds);
             Set<Long> foundIds = found.stream().map(TimeOption::getId).collect(Collectors.toSet());
 
             if(foundIds.size() != timeOptionIds.size())
@@ -208,7 +208,7 @@ public class VoteService {
         if(!placeOptionsIds.isEmpty())
         {
 
-            List<PlaceOption> found = placeOptionRepository.findAllByEvent_IdAndIdIn(eventId, placeOptionsIds);
+            List<PlaceOption> found = placeOptionRepository.findAllByEvent_IdAndIdInAndActiveTrue(eventId, placeOptionsIds);
             Set<Long> foundIds = found.stream().map(PlaceOption::getId).collect(Collectors.toSet());
 
             if(foundIds.size() != placeOptionsIds.size())

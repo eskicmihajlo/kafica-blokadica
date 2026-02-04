@@ -27,4 +27,7 @@ public class TimeOption {
 
     @Column(name = "ends_at")
     private OffsetDateTime endsAt;
+
+    @Column(name = "is_active", nullable = false)
+    private boolean active = true;
 }

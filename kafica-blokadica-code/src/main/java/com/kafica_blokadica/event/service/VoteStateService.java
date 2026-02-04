@@ -51,8 +51,8 @@ public class VoteStateService {
             }
         }
 
-        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdOrderByStartsAtAsc(eventId);
-        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdOrderByIdAsc(eventId);
+        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(eventId);
+        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByIdAsc(eventId);
 
         List<TimeVote> timeVotes = timeVoteRepository.findAllByEventId(eventId);
         List<PlaceVote> placeVotes = placeVoteRepository.findAllByEventId(eventId);

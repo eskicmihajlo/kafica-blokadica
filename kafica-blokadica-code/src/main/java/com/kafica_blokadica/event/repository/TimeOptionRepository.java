@@ -7,11 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TimeOptionRepository extends JpaRepository<TimeOption, Long> {
-    List<TimeOption> findAllByEvent_IdAndIdIn(Long eventId, Collection<Long> ids);
-    List<TimeOption> findAllByEvent_IdOrderByStartsAtAsc(Long eventId);
-    boolean existsByIdAndEvent_Id(Long id, Long eventId);
+    List<TimeOption> findAllByEvent_IdAndIdInAndActiveTrue(Long eventId, Collection<Long> ids);
+    Optional<TimeOption> findByEventIdAndIdAndActiveTrue(Long eventId, Long ids);
+    List<TimeOption> findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(Long eventId);
+    boolean existsByIdAndEvent_IdAndActiveTrue(Long id, Long eventId);
 
 }

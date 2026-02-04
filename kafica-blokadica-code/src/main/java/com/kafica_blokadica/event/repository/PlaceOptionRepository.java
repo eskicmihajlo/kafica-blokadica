@@ -10,8 +10,8 @@ import java.util.List;
 
 @Repository
 public interface PlaceOptionRepository extends JpaRepository<PlaceOption, Long> {
-    List<PlaceOption> findAllByEvent_IdAndIdIn(Long eventId, Collection<Long> ids);
-    List<PlaceOption> findAllByEvent_IdOrderByIdAsc(Long eventId);
-    boolean existsByIdAndEvent_Id(Long id, Long eventId);
+    List<PlaceOption> findAllByEvent_IdAndIdInAndActiveTrue(Long eventId, Collection<Long> ids);
+    List<PlaceOption> findAllByEvent_IdAndActiveTrueOrderByIdAsc(Long eventId);
+    boolean existsByIdAndEvent_IdAndActiveTrue(Long id, Long eventId);
 
 }

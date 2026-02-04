@@ -30,12 +30,36 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(RuntimeException.class)
     public ResponseEntity<Map<String, Object>> handleAllOtherRuntimeExceptions(RuntimeException exception) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", "XXX.");
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Internal Server Error", exception.getMessage());
     }
 
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleUserNotFoundException(UserNotFoundException exception) {
         return buildResponse(HttpStatus.NOT_FOUND, "Not Found", exception.getMessage());
+    }
+
+    @ExceptionHandler(NotCreatorException.class)
+    public ResponseEntity<Map<String , Object>> hanldeNotCreatorException(NotCreatorException exception)
+    {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "You are not creator of the event", exception.getMessage());
+    }
+
+    @ExceptionHandler(DeadLineException.class)
+    public ResponseEntity<Map<String , Object>> hanldeDeadlineException(DeadLineException exception)
+    {
+        return buildResponse(HttpStatus.NOT_ACCEPTABLE, "Deadline exception", exception.getMessage());
+    }
+
+    @ExceptionHandler(EventStatusException.class)
+    public ResponseEntity<Map<String, Object>> handleEventStatusException(EventStatusException exception)
+    {
+        return buildResponse(HttpStatus.CONFLICT, "Event Status Exception", exception.getMessage());
+    }
+
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleNotFound(NotFoundException exception)
+    {
+        return buildResponse(HttpStatus.NOT_FOUND, "Entity not found", exception.getMessage());
     }
 
     @ExceptionHandler({BadCredentialsException.class, InternalAuthenticationServiceException.class})
