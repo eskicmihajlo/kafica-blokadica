@@ -12,7 +12,7 @@ import java.util.Optional;
 @Repository
 public interface TimeOptionRepository extends JpaRepository<TimeOption, Long> {
     List<TimeOption> findAllByEvent_IdAndIdInAndActiveTrue(Long eventId, Collection<Long> ids);
-    Optional<TimeOption> findByEventIdAndIdAndActiveTrue(Long eventId, Long ids);
+    Optional<TimeOption> findByEvent_IdAndIdAndActiveTrue(Long eventId, Long id);
     List<TimeOption> findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(Long eventId);
     boolean existsByIdAndEvent_IdAndActiveTrue(Long id, Long eventId);
 
