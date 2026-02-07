@@ -62,7 +62,7 @@ public class FinalizeEventService {
 
         eventRepository.save(event);
 
-        messagingTemplate.convertAndSend("/topic/events/"+event,
+        messagingTemplate.convertAndSend("/topic/events/"+eventId,
                 new VotesUpdatedMessage("EVENT_FINALIZED", eventId, userId, OffsetDateTime.now()));
 
         return new FinalizeEventResponse(eventId,  bestTimeId, bestPlaceId, event.getFinalizedAt());

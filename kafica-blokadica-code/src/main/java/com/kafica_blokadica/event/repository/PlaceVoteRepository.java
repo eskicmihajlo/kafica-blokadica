@@ -15,4 +15,6 @@ public interface PlaceVoteRepository extends JpaRepository<PlaceVote, Long> {
     List<PlaceVote> findAllByUserIdAndPlaceOptionIdIn(Long userId, Collection<Long> placeOptionIds);
 
     List<PlaceVote> findAllByEventId(Long eventId);
+
+    void deleteAllByEventIdAndUserId(Long eventId, Long userId);
 }

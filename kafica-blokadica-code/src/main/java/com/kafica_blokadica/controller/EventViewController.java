@@ -1,7 +1,8 @@
-package com.kafica_blokadica.event.service;
+package com.kafica_blokadica.controller;
 
 
 import com.kafica_blokadica.event.dtos.EventViewResponse;
+import com.kafica_blokadica.event.service.EventViewService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;

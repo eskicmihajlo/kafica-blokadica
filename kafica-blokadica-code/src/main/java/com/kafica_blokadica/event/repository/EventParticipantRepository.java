@@ -19,6 +19,7 @@ public interface EventParticipantRepository extends JpaRepository<EventParticipa
     long countByEventId(Long eventId);
     long countByEventIdAndRespondedAtNotNull(Long eventId);
     boolean  existsByEventIdAndUserId(Long eventId, Long userID);
-
     List<EventParticipant> findAllByUserIdOrderByJoinedAtDesc(Long userId);
+
+    void deleteByEventIdAndUserId(Long eventId, Long userId);
 }

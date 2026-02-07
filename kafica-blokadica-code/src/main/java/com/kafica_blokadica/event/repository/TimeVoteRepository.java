@@ -15,4 +15,5 @@ public interface TimeVoteRepository extends JpaRepository<TimeVote, Long> {
 
     List<TimeVote> findAllByUserIdAndTimeOptionIdIn(Long userId, Collection<Long> timeOptionIds);
     List<TimeVote> findAllByEventId(Long eventId);
+    void deleteAllByEventIdAndUserId(Long eventId, Long userId);
 }

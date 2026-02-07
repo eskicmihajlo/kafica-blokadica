@@ -71,6 +71,16 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<Map<String ,Object>> handleConflictException(ConflictException exception)
+    {
+        return buildResponse(
+                HttpStatus.CONFLICT,
+                "Data conflict",
+                exception.getMessage()
+        );
+    }
+
     @ExceptionHandler(NotParticipantException.class)
     public ResponseEntity<Map<String, Object>> handleNotParticipantException(NotParticipantException exception)
     {
