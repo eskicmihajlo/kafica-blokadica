@@ -41,8 +41,7 @@ public class EventResultService {
 
         Long userId = SecurityUtils.getCurrentUserIdOrThrow();
 
-        User user  = userRepository.findById(userId)
-                .orElseThrow(()-> new UserNotFoundException("User with ID: "+ userId + " not found" ));
+
 
 
         Event event = eventRepository.findById(eventId)
@@ -77,8 +76,31 @@ public class EventResultService {
                 .orElseThrow(()-> new IllegalStateException("Place Option with ID: "+ timeId +" not found"));
 
 
-        return new EventResultResponse(eventId, event.getTitle(), event.getDescription(), event.getStatus().toString(),
-                user.getDisplayName(), event.getFinalizedAt(),event.getMethod().toString());
+        User user  = userRepository.findById(event.getCreatorUserId())
+                .orElseThrow(()-> new UserNotFoundException("Creator not found" ));
+
+
+        return new EventResultResponse(
+                eventId,
+                event.getTitle(),
+                event.getDescription(),
+                event.getStatus().toString(),
+                user.getDisplayName(),
+                event.getFinalizedAt(),
+                event.getMethod().toString(),
+                new EventResultResponse.SelectedPlace(
+                        placeOption.getId(),
+                        placeOption.getName(),
+                        placeOption.getAddress(),
+                        placeOption.getLng(),
+                        placeOption.getLat()
+                ),
+                new EventResultResponse.SelectedTime(
+                        timeOption.getId(),
+                        timeOption.getStartsAt(),
+                        timeOption.getEndsAt()
+                )
+        );
 
     }
 

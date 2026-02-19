@@ -6,6 +6,7 @@ import com.kafica_blokadica.event.dtos.CreateEventRequest;
 import com.kafica_blokadica.event.dtos.EventResponse;
 import com.kafica_blokadica.event.dtos.UpdateEventRequest;
 import com.kafica_blokadica.event.models.*;
+import com.kafica_blokadica.event.repository.EventParticipantRepository;
 import com.kafica_blokadica.event.repository.EventRepository;
 import com.kafica_blokadica.exception.EventNotFoundException;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +24,7 @@ public class EventService {
 
 
     private final EventRepository repo;
+    private final EventParticipantRepository eventParticipantRepository;
     private final SecureRandom random = new SecureRandom();
 
 
@@ -31,12 +33,14 @@ public class EventService {
     {
         String token = generateToken(24);
 
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
         Event event =  Event.builder()
                 .title(request.title())
                 .description(request.description())
                 .deadline(request.deadline())
                 .status(EventStatus.OPEN)
-                .creatorUserId(SecurityUtils.getCurrentUserIdOrThrow())
+                .creatorUserId(userId)
                 .inviteToken(token)
                 .build();
 
@@ -60,6 +64,20 @@ public class EventService {
 
 
         Event saved = repo.save(event);
+
+
+        eventParticipantRepository.findByEventIdAndUserId(event.getId(), userId)
+                .orElseGet(()-> eventParticipantRepository.save(
+                        EventParticipant.builder()
+                                .joinedAt(OffsetDateTime.now())
+                                .eventId(event.getId())
+                                .userId(userId)
+                                .build()
+                ));
+
+
+
+
 
         return toResponse(saved);
 

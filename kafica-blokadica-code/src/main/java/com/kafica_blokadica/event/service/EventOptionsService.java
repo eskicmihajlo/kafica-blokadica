@@ -86,6 +86,7 @@ public class EventOptionsService {
                 .address(request.address())
                 .lng(request.lng())
                 .lat(request.lat())
+                .active(true)
                 .event(event)
                 .build();
 

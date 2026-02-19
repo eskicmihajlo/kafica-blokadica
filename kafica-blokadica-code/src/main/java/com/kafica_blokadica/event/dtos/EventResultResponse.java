@@ -13,7 +13,10 @@ public record EventResultResponse (
         String status,
         String creatorName,
         OffsetDateTime finalizedAt,
-        String finalizionMethod
+        String finalizionMethod,
+
+        SelectedPlace selectedPlace,
+        SelectedTime selectedTime
 
 ) {
 
