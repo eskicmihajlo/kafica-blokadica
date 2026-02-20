@@ -52,4 +52,10 @@ public class EventController {
     {
         return service.update(id, request);
     }
+
+    @PostMapping("/cancel/{eventId}")
+    public Boolean cancel(@PathVariable Long eventId)
+    {
+        return service.cancel(eventId);
+    }
 }

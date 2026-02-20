@@ -3,6 +3,7 @@ package com.kafica_blokadica.controller;
 
 import com.kafica_blokadica.event.dtos.FinalizeEventResponse;
 import com.kafica_blokadica.event.dtos.FinalizeManualRequest;
+import com.kafica_blokadica.event.models.FinalizionMethod;
 import com.kafica_blokadica.event.service.FinalizeEventService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,7 @@ public class FinalizeEventController {
     @PostMapping("/{eventID}/finalize")
     public FinalizeEventResponse finalize(@PathVariable Long eventID)
     {
-        return finalizeEventService.finalizeEvent(eventID);
+        return finalizeEventService.processFinalization(eventID , FinalizionMethod.CLICK);
     }
 
 

@@ -6,6 +6,7 @@ import com.kafica_blokadica.event.dtos.FinalizeManualRequest;
 import com.kafica_blokadica.event.dtos.VotesUpdatedMessage;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.*;
+import com.kafica_blokadica.exception.ConflictException;
 import com.kafica_blokadica.exception.EventNotFoundException;
 import com.kafica_blokadica.exception.EventStatusException;
 import lombok.AllArgsConstructor;
@@ -28,137 +29,30 @@ public class FinalizeEventService {
     private final SimpMessagingTemplate messagingTemplate;
 
 
-    @Transactional
-    public FinalizeEventResponse finalizeEvent(Long eventId)
-    {
-
-        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
-
-        Event event = eventRepository.findById(eventId)
-                .orElseThrow(()-> new IllegalArgumentException("Evenet with ID: " + eventId +" do not exist"));
-
-        if(event.getStatus() != EventStatus.OPEN)
-        {
-            throw new IllegalStateException("Event is not open");
-        }
-
-        if(!Objects.equals(event.getCreatorUserId(), userId))
-        {
-            throw  new SecurityException("Only creator can finalize event");
-        }
 
 
-        List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(eventId);
-        List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByIdAsc(eventId);
 
-        Long bestTimeId = pickBestTimeOption(eventId,timeOptions);
-        Long bestPlaceId = pickBestPlaceOption(eventId, placeOptions);
-
-
-        event.setFinalizedAt(OffsetDateTime.now());
-        event.setStatus(EventStatus.FINALIZED);
-        event.setFinalTimeOptionId(bestTimeId);
-        event.setFinalPlaceOptionId(bestPlaceId);
-        event.setMethod(FinalizionMethod.CLICK);
-
-        eventRepository.save(event);
-
-        messagingTemplate.convertAndSend("/topic/events/"+eventId,
-                new VotesUpdatedMessage("EVENT_FINALIZED", eventId, userId, OffsetDateTime.now()));
-
-        return new FinalizeEventResponse(eventId,  bestTimeId, bestPlaceId, event.getFinalizedAt());
-    }
-
-    private Long pickBestPlaceOption(Long eventId, List<PlaceOption> placeOptions) {
-
-        if (placeOptions.isEmpty()) return null;
-
-
-        //counts: optionId -> [likeCount, dislikeCount]
-        Map<Long, int[]> counts = new HashMap<>();
-        /// 1 : [0,0]
-        for(PlaceOption pl : placeOptions) counts.put(pl.getId(), new int[]{0,0});
-
-        for(PlaceVote pv : placeVoteRepository.findAllByEventId(eventId))
-        {
-            int[] c = counts.get(pv.getPlaceOptionId());
-            if(c==null) continue;
-
-            /// 2 : [2,3] , 3:[3:2]
-            if(pv.getVote() == PlaceVoteValue.LIKE) c[0]++;
-            else if(pv.getVote() == PlaceVoteValue.DISLIKE) c[1]++;
-
-
-        }
-
-
-        return placeOptions.stream()
-                .min(Comparator
-                        .comparingLong((PlaceOption p) -> -counts.getOrDefault(p.getId(), new int[]{0,0})[0]) // likes desc
-                        .thenComparingInt(p -> counts.getOrDefault(p.getId(), new int[]{0,0})[1])           // dislikes asc
-                        .thenComparingLong(PlaceOption::getId)                                                // stable
-                )
-                .map(PlaceOption::getId)
-                .orElse(null);
-    }
 
     private Long pickBestTimeOption(Long eventId, List<TimeOption> timeOptions) {
-
         if(timeOptions.isEmpty()) return null;
 
         Map<Long,int[]> counts = new HashMap<>();
         for(TimeOption to: timeOptions) counts.put(to.getId() , new int[]{0,0,0});
 
-        for(TimeVote tv : timeVoteRepository.findAllByEventId(eventId))
-        {
+        for(TimeVote tv : timeVoteRepository.findAllByEventId(eventId)) {
             int[] c = counts.get(tv.getTimeOptionId());
             if(c==null) continue;
-
             if(tv.getVote() == TimeVoteValue.YES) c[0]++;
             else if (tv.getVote()== TimeVoteValue.NO) c[1]++;
             else if (tv.getVote()== TimeVoteValue.MAYBE) c[2]++;
-
         }
 
-
-        return timeOptions.stream()
-                .min(Comparator
-                        .comparingLong((TimeOption t) -> -counts.getOrDefault(t.getId(), new int[]{0,0,0})[0])
-                        .thenComparingLong((TimeOption t) -> counts.getOrDefault(t.getId(), new int[]{0,0,0})[1])
-                        .thenComparingLong((TimeOption t) -> -counts.getOrDefault(t.getId(), new int[]{0,0,0})[2])
-                        .thenComparingLong(TimeOption::getId))
-                .map(TimeOption::getId)
-                .orElse(null);
-
-
-
-    }
-
-
-    private Long pickBestTimeOptionV2(Long eventId, List<TimeOption> timeOptions) {
-
-        if(timeOptions.isEmpty()) return null;
-
-        Map<Long,int[]> counts = new HashMap<>();
-        for(TimeOption to: timeOptions) counts.put(to.getId() , new int[]{0,0,0});
-
-        for(TimeVote tv : timeVoteRepository.findAllByEventId(eventId))
-        {
-            int[] c = counts.get(tv.getTimeOptionId());
-            if(c==null) continue;
-
-            if(tv.getVote() == TimeVoteValue.YES) c[0]++;
-            else if (tv.getVote()== TimeVoteValue.NO) c[1]++;
-            else if (tv.getVote()== TimeVoteValue.MAYBE) c[2]++;
-
-        }
-
-        TimeOption bestOption =  timeOptions.stream()
-                .min(Comparator.comparingLong((TimeOption t)->{
-                    int[] c = counts.get(t.getId());
-                    long score = (c[0] * 2L + (c[2]*1L) + (c[1] * 1));
-                    return  -score;
-                })
+        TimeOption bestOption = timeOptions.stream()
+                .min(Comparator.comparingLong((TimeOption t) -> {
+                            int[] c = counts.get(t.getId());
+                            long score = (c[0] * 2L) + (c[2] * 1L) - (c[1] * 1L);
+                            return -score;
+                        })
                         .thenComparingLong(TimeOption::getId))
                 .orElse(null);
 
@@ -167,16 +61,13 @@ public class FinalizeEventService {
         int[] bc = counts.get(bestOption.getId());
         long bestScore = (bc[0] * 2L) + (bc[2] * 1L) - (bc[1] * 1L);
 
-        if (bestScore<2)
-        {
-            return null;
-        }
+
+        if (bestScore < 2) return null;
 
         return bestOption.getId();
-
     }
 
-    private Long pickBestPlaceOptionV2(Long eventId, List<PlaceOption> placeOptions) {
+    private Long pickBestPlaceOption(Long eventId, List<PlaceOption> placeOptions) {
 
         if (placeOptions.isEmpty()) return null;
 
@@ -266,40 +157,54 @@ public class FinalizeEventService {
 
     }
 
-    public void processFinalization(Event event, FinalizionMethod finalizionMethod) {
 
-        if (event.getStatus() != EventStatus.OPEN)
-        {
+    @Transactional
+    public FinalizeEventResponse processFinalization(Long eventId, FinalizionMethod method) {
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new IllegalArgumentException("Event with ID: " + eventId + " does not exist"));
+
+        if (event.getStatus() != EventStatus.OPEN) {
             throw new EventStatusException("Event is not open");
         }
 
+        if (method.equals(FinalizionMethod.CLICK)) {
+            Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+            if (!Objects.equals(event.getCreatorUserId(), userId)) {
+                throw new SecurityException("Only creator can finalize event");
+            }
+        }
 
         List<TimeOption> timeOptions = timeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByStartsAtAsc(event.getId());
         List<PlaceOption> placeOptions = placeOptionRepository.findAllByEvent_IdAndActiveTrueOrderByIdAsc(event.getId());
 
-        Long bestTimeId = pickBestTimeOptionV2(event.getId(),timeOptions);
-        Long bestPlaceId = pickBestPlaceOptionV2(event.getId(), placeOptions);
+        Long bestTimeId = pickBestTimeOption(event.getId(), timeOptions);
+        Long bestPlaceId = pickBestPlaceOption(event.getId(), placeOptions);
 
-
-        if(bestPlaceId == null || bestTimeId == null)
-        {
+        if (bestPlaceId == null || bestTimeId == null) {
+            if (method.equals(FinalizionMethod.CLICK)) {
+                throw new ConflictException("Cannot finalize: no valid time or place options based on votes.");
+            }
             event.setStatus(EventStatus.CANCELLED);
-        }
-        else
-        {
+        } else {
             event.setStatus(EventStatus.FINALIZED);
             event.setFinalTimeOptionId(bestTimeId);
             event.setFinalPlaceOptionId(bestPlaceId);
         }
 
         event.setFinalizedAt(OffsetDateTime.now());
-        event.setMethod(FinalizionMethod.AUTO);
+        event.setMethod(method);
         eventRepository.save(event);
 
+        String action = (event.getStatus() == EventStatus.CANCELLED) ? "EVENT_CANCELLED" : "EVENT_FINALIZED";
 
-        String action = event.getStatus() == EventStatus.CANCELLED ? "EVENT_CANCELLED" : "EVENT_FINALIZED";
-        messagingTemplate.convertAndSend("/topic/events/" + event.getDeadline(),
-                new VotesUpdatedMessage(action, event.getId(), null, event.getFinalizedAt()));
+        messagingTemplate.convertAndSend("/topic/events/" + eventId,
+                new VotesUpdatedMessage(action, eventId, event.getCreatorUserId(), event.getFinalizedAt()));
 
+        return new FinalizeEventResponse(
+                eventId,
+                event.getFinalTimeOptionId(),
+                event.getFinalPlaceOptionId(),
+                event.getFinalizedAt()
+        );
     }
 }

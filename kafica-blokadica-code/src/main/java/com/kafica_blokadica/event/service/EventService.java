@@ -5,10 +5,14 @@ import com.kafica_blokadica.config.SecurityUtils;
 import com.kafica_blokadica.event.dtos.CreateEventRequest;
 import com.kafica_blokadica.event.dtos.EventResponse;
 import com.kafica_blokadica.event.dtos.UpdateEventRequest;
+import com.kafica_blokadica.event.dtos.VotesUpdatedMessage;
 import com.kafica_blokadica.event.models.*;
 import com.kafica_blokadica.event.repository.EventParticipantRepository;
 import com.kafica_blokadica.event.repository.EventRepository;
+import com.kafica_blokadica.exception.ConflictException;
 import com.kafica_blokadica.exception.EventNotFoundException;
+import com.kafica_blokadica.exception.EventStatusException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +29,7 @@ public class EventService {
 
     private final EventRepository repo;
     private final EventParticipantRepository eventParticipantRepository;
+    private final SimpMessagingTemplate messagingTemplate;
     private final SecureRandom random = new SecureRandom();
 
 
@@ -176,6 +181,37 @@ public class EventService {
         }
 
         return toResponse(repo.save(event));
+    }
+
+
+
+    @Transactional
+    public Boolean cancel(Long eventId)
+    {
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event = repo.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+        if (!userId.equals(event.getCreatorUserId())) {
+            throw new ConflictException("Only creator can edit event");
+        }
+
+        if (event.getStatus() != EventStatus.OPEN) {
+            throw new EventStatusException("Event is not OPEN");
+        }
+
+        event.setStatus(EventStatus.CANCELLED);
+        event.setFinalizedAt(OffsetDateTime.now());
+        event.setMethod(FinalizionMethod.CLICK);
+
+        repo.save(event);
+
+        messagingTemplate.convertAndSend("/topic/events/"+ event.getId(),
+                new VotesUpdatedMessage("EVENT_CANCELLED", event.getId(), userId,event.getFinalizedAt()));
+
+        return true;
     }
 
 }

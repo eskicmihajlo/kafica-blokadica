@@ -23,8 +23,8 @@ public class EventAutoFinalizer {
 
 
 
-    @Transactional
-    @Scheduled(cron = "0 * * * * *")
+
+    @Scheduled(cron = "${app.scheduling.deadline-check}")
     public void checkDeadlines()
     {
         OffsetDateTime now = OffsetDateTime.now();
@@ -34,7 +34,7 @@ public class EventAutoFinalizer {
 
         for(Event event : expiredEvents)
         {
-            finalizeEventService.processFinalization(event, FinalizionMethod.AUTO);
+            finalizeEventService.processFinalization(event.getId(), FinalizionMethod.AUTO);
         }
 
     }
