@@ -1,0 +1,14 @@
+# React Native / Node
+**/node_modules/
+**/.expo/
+
+# Environment
+**/.env
+**/.env.*
+
+# Firebase
+**/google-services.json
+**/*firebase-adminsdk*.json
+
+# IDE
+**/.idea/

@@ -1,0 +1,272 @@
+package com.kafica_blokadica.event.service;
+
+
+import com.kafica_blokadica.config.SecurityUtils;
+import com.kafica_blokadica.event.dtos.*;
+import com.kafica_blokadica.event.models.*;
+import com.kafica_blokadica.event.repository.EventParticipantRepository;
+import com.kafica_blokadica.event.repository.EventRepository;
+import com.kafica_blokadica.exception.ConflictException;
+import com.kafica_blokadica.exception.DeadLineException;
+import com.kafica_blokadica.exception.EventNotFoundException;
+import com.kafica_blokadica.exception.EventStatusException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.transaction.annotation.Transactional;
+import lombok.AllArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import java.security.SecureRandom;
+import java.time.OffsetDateTime;
+import java.util.HexFormat;
+import java.util.stream.Collectors;
+
+@Service
+@AllArgsConstructor
+public class EventService {
+
+
+    private final EventRepository repo;
+    private final EventParticipantRepository eventParticipantRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final SecureRandom random = new SecureRandom();
+
+
+    @Transactional
+    public EventResponse create(CreateEventRequest request)
+    {
+
+        validateCreateEventRequest(request);
+        String token = generateToken(24);
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event =  Event.builder()
+                .title(request.title())
+                .description(request.description())
+                .deadline(request.deadline())
+                .status(EventStatus.OPEN)
+                .creatorUserId(userId)
+                .inviteToken(token)
+                .build();
+
+        request.timeOptions().forEach(t ->
+                event.getTimeOptions().add(TimeOption.builder()
+                        .event(event)
+                        .startsAt(t.startsAt())
+                        .endsAt(t.endsAt())
+                        .active(true)
+                        .build())
+        );
+
+        request.placeOptions().forEach(p ->
+                event.getPlaceOptions().add(PlaceOption.builder()
+                        .event(event)
+                        .name(p.name())
+                        .address(p.address())
+                        .lat(p.lat())
+                        .lng(p.lng())
+                        .active(true)
+                        .build())
+        );
+
+
+        Event saved = repo.save(event);
+
+
+        eventParticipantRepository.findByEventIdAndUserId(event.getId(), userId)
+                .orElseGet(()-> eventParticipantRepository.save(
+                        EventParticipant.builder()
+                                .joinedAt(OffsetDateTime.now())
+                                .eventId(event.getId())
+                                .userId(userId)
+                                .build()
+                ));
+
+
+
+
+
+        return toResponse(saved);
+
+
+    }
+
+
+    public void validateCreateEventRequest(CreateEventRequest request) {
+        OffsetDateTime now = OffsetDateTime.now();
+
+        if (!request.deadline().isAfter(now)) {
+            throw new DeadLineException("Deadline needs to be in the future");
+        }
+
+        for (CreateEventRequest.TimeOptionReq t : request.timeOptions()) {
+            if (t.startsAt() == null) {
+                throw new IllegalArgumentException("Starts at is required");
+            }
+
+            if (t.endsAt() == null) {
+                throw new IllegalArgumentException("Ends at is required");
+            }
+
+            if (!t.endsAt().isAfter(t.startsAt())) {
+                throw new IllegalArgumentException("Ends at must be after starts at");
+            }
+
+            if (!t.startsAt().isAfter(request.deadline())) {
+                throw new IllegalArgumentException("Time option must start after deadline");
+            }
+        }
+    }
+
+
+
+
+    @Transactional(readOnly = true)
+    public EventResponse getByInviteToken(String inviteToken)
+    {
+
+        return repo.findByInviteToken(inviteToken).map(this::toResponse).orElseThrow(
+                ()-> new IllegalArgumentException("Invite " + inviteToken + " token do not exsit")
+        );
+
+
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+    private EventResponse toResponse(Event e) {
+
+        return new EventResponse(
+                e.getId(),
+                e.getTitle(),
+                e.getDescription(),
+                e.getDeadline(),
+                e.getStatus(),
+                e.getInviteToken(),
+                e.getTimeOptions().stream().map(t -> new EventResponse.TimeOpt(t.getId(), t.getStartsAt(), t.getEndsAt()))
+                        .collect(Collectors.toList()),
+                e.getPlaceOptions().stream().map(p -> new EventResponse.PlaceOpt(p.getId(), p.getName(), p.getAddress(), p.getLat(), p.getLng()))
+                        .collect(Collectors.toList())
+
+        );
+
+
+    }
+
+
+    private EventResponseView toResponseView(Event e) {
+
+        return new EventResponseView(
+                e.getId(),
+                e.getTitle(),
+                e.getDescription(),
+                e.getDeadline(),
+                e.getStatus(),
+                e.getInviteToken()
+        );
+
+    }
+
+
+    private String generateToken(int bytes)
+    {
+        byte [] buf = new byte[bytes];
+        random.nextBytes(buf);
+        return HexFormat.of().formatHex(buf);
+
+    }
+
+
+    @Transactional(readOnly = true)
+    public EventResponse getById(Long id) {
+        return repo.findById(id).map(this::toResponse)
+                .orElseThrow(() -> new IllegalArgumentException("Event with ID: "+ id +" not found"));
+    }
+
+    @Transactional(readOnly = true)
+    public EventResponseView getByIdView(Long id) {
+        return repo.findById(id).map(this::toResponseView)
+                .orElseThrow(() -> new IllegalArgumentException("Event with ID: "+ id +" not found"));
+    }
+
+
+
+
+
+    public EventResponse update(Long id, UpdateEventRequest request) {
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event = repo.findById(id)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+        if (!userId.equals(event.getCreatorUserId())) {
+            throw new RuntimeException("Only creator can edit event");
+        }
+
+        if (event.getStatus() != EventStatus.OPEN) {
+            throw new IllegalStateException("Event is not OPEN");
+        }
+
+        if (request.deadline() != null) {
+            if (request.deadline().isBefore(OffsetDateTime.now())) {
+                throw new IllegalStateException("Deadline cannot be in the past");
+            }
+            event.setDeadline(request.deadline());
+        }
+
+        if (request.title() != null) {
+            String t = request.title().trim();
+            if (t.isBlank()) throw new IllegalArgumentException("Title cannot be blank");
+            event.setTitle(t.trim());
+        }
+
+        if (request.description() != null) {
+            event.setDescription(request.description().trim());
+        }
+
+        return toResponse(repo.save(event));
+    }
+
+
+
+    @Transactional
+    public Boolean cancel(Long eventId)
+    {
+
+        Long userId = SecurityUtils.getCurrentUserIdOrThrow();
+
+        Event event = repo.findById(eventId)
+                .orElseThrow(() -> new EventNotFoundException("Event not found"));
+
+        if (!userId.equals(event.getCreatorUserId())) {
+            throw new ConflictException("Only creator can edit event");
+        }
+
+        if (event.getStatus() != EventStatus.OPEN) {
+            throw new EventStatusException("Event is not OPEN");
+        }
+
+        event.setStatus(EventStatus.CANCELLED);
+        event.setFinalizedAt(OffsetDateTime.now());
+        event.setMethod(FinalizionMethod.CLICK);
+
+        repo.save(event);
+
+        messagingTemplate.convertAndSend("/topic/events/"+ event.getId(),
+                new VotesUpdatedMessage("EVENT_CANCELLED", event.getId(), userId,event.getFinalizedAt()));
+
+        return true;
+    }
+
+}

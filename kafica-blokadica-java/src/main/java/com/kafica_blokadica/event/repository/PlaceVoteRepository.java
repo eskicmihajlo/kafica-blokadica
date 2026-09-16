@@ -1,0 +1,31 @@
+package com.kafica_blokadica.event.repository;
+
+import com.kafica_blokadica.event.models.PlaceVote;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
+
+
+@Repository
+public interface PlaceVoteRepository extends JpaRepository<PlaceVote, Long> {
+
+    List<PlaceVote> findAllByUserIdAndPlaceOptionIdIn(Long userId, Collection<Long> placeOptionIds);
+
+    List<PlaceVote> findAllByEventId(Long eventId);
+
+    void deleteAllByEventIdAndUserId(Long eventId, Long userId);
+
+    @Query("""
+    select count(pv) > 0
+    from PlaceVote pv
+    join PlaceOption po on po.id = pv.placeOptionId
+    where pv.eventId = :eventId
+      and pv.userId = :userId
+      and po.active = true
+""")
+    boolean existsActivePlaceVote(Long eventId, Long userId);
+}
